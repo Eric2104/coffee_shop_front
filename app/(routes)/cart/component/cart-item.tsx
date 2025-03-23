@@ -13,7 +13,6 @@ interface CartItemProps {
 const CartItem = (props: CartItemProps) => {
     const { product } = props
     const { removeItem } = useCart()
-    console.log(product)
     return (
         <li className="flex py-6 border-b">
             {product.imagen ? 

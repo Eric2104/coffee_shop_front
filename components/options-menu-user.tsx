@@ -16,11 +16,16 @@ import { useEffect, useState } from "react";
 export function OptionsMenuUser() {
 
         const [roleUser, setRoleUser] = useState<string | null>(null);
-    
         useEffect(() => {
             const storedRole = localStorage.getItem('role');
             setRoleUser(storedRole);
         }, []);
+
+        const handleLogout = () => {
+            localStorage.removeItem('token'); 
+            localStorage.removeItem('role');
+            window.location.reload();
+        };
 
     return (
         <DropdownMenu>
@@ -55,7 +60,7 @@ export function OptionsMenuUser() {
                 }
                 <DropdownMenuItem>Support</DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => {}}>
+                <DropdownMenuItem onClick={handleLogout}>
                     Cerrar sesión
                 </DropdownMenuItem>
             </DropdownMenuContent>

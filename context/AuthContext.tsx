@@ -8,9 +8,13 @@ interface AuthContextType {
     logout: () => void;
 }
 
+ interface AuthProviderProps {
+    children: React.ReactNode;
+  }
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC = ({ children }) => {
+export const AuthProvider = ({ children }:AuthProviderProps) => {
     const [token, setToken] = useState<string | null>(null);
     const [role, setRole] = useState<string | null>(null);
 

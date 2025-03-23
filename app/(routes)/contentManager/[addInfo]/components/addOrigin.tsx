@@ -1,6 +1,7 @@
 'use client'
 import { useGetCoffee } from "@/api/getCoffe";
 import { useGetOriginById } from "@/api/getOriginById";
+import DialogErrors from "@/components/dialog-errors";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,15 +9,23 @@ import { Label } from "@/components/ui/label";
 import axios from "axios";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { toast } from "@/hooks/use-toast"
+
+
+interface Origin {
+    id?: number;
+    nameOrigin: string;
+}
 
 const AddOrigin = () => {
     const { idCoffee } = useParams();
     const router = useRouter();
     const { error, loading, result }: { error: any, loading: boolean, result: any } = useGetOriginById(Number(idCoffee));
-    const [originAdd, setOriginAdd] = useState({
+    const [originAdd, setOriginAdd] = useState<Origin>({
         id: -1,
         nameOrigin: ''
     });
+    const [showDialogErrors, setShowDialogErrors] = useState(false);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -26,11 +35,24 @@ const AddOrigin = () => {
         });
     };
 
+    const messageError = [
+        {
+            titulo: 'Error',
+            descripcion: 'Este origen no puede ser eliminado ya que está asociado a un producto, debes asegurarte de que no esté asociado a ningún producto para poder eliminarlo.'
+        }
+    ]
+
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const formData = new FormData();
 
-        formData.append('origin', JSON.stringify(originAdd));
+        let originData = { ...originAdd };
+        if (!idCoffee) {
+            const { id, ...rest } = originData;
+            originData = rest;
+        }
+
+        formData.append('origin', JSON.stringify(originData));
 
         try {
             // Enviar la solicitud POST con formData
@@ -39,15 +61,26 @@ const AddOrigin = () => {
                     'Content-Type': 'multipart/form-data'
                 }
             });
-            if(idCoffee){
-                alert('Origen actualizado correctamente');
-            }else{
-                alert('Origen creado correctamente');
+            if (idCoffee) {
+                toast({
+                    title: 'Éxito',
+                    description: 'Origen actualizado correctamente',
+                });
+            } else {
+                toast({
+                    title: 'Éxito',
+                    description: 'Origen creado correctamente',
+                });
             }
             router.push('/contentManager');
 
         } catch (error) {
             console.error('Error creando origen:', error);
+            toast({
+                title: 'Error',
+                description: 'Error creando categoría',
+                variant: 'destructive'
+            });
         }
     };
 
@@ -63,12 +96,25 @@ const AddOrigin = () => {
 
     const deleteCoffee = async () => {
         try {
-            // await axios.delete(`${process.env.NEXT_PUBLIC_BACKEND_URL}/coffee-app/coffees/${idCoffee}`);
-            // alert('Café eliminado correctamente');
-            // router.push('/contentManager');
-        }
-        catch (error) {
-            console.error('Error eliminando café:', error);
+            const res = await axios.delete(`${process.env.NEXT_PUBLIC_BACKEND_URL}/coffee-app/origin/${idCoffee}`);
+            if (res.status === 200) {
+                toast({
+                    title: 'Éxito',
+                    description: 'Origen eliminado correctamente',
+                });
+                router.push('/contentManager');
+            }
+        } catch (error) {
+            if (axios.isAxiosError(error) && error.response?.status === 409) {
+                setShowDialogErrors(true);
+            } else {
+                console.error('Error eliminando origen:', error);
+                toast({
+                    title: 'Error',
+                    description: 'Error eliminando origen',
+                    variant: 'destructive'
+                });
+            }
         }
     };
 
@@ -107,11 +153,12 @@ const AddOrigin = () => {
                         {idCoffee ? 'Actualizar Origen' : 'Agregar Origen'}
                     </Button>
                     {idCoffee && (
-                            <Button type="button" className="w-full transition" variant={'destructive'} onClick={deleteCoffee} disabled>
-                                Eliminar origen
-                            </Button>
-                        )}
+                        <Button type="button" className="w-full transition" variant={'destructive'} onClick={deleteCoffee} >
+                            Eliminar origen
+                        </Button>
+                    )}
                 </form>
+                <DialogErrors isOpen={showDialogErrors} messageError={messageError} setIsOpen={setShowDialogErrors}/>
             </CardContent>
         </Card>
     );

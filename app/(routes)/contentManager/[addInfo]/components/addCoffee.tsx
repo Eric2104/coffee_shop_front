@@ -12,7 +12,7 @@ import { useGetCategories } from "@/api/getCategories";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useGetCoffee } from "@/api/getCoffe";
-import { ProductType } from "@/types/product";
+import { toast } from "@/hooks/use-toast"
 
 
 interface ImagenCoffee {
@@ -92,7 +92,6 @@ const AddCoffee = () => {
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        console.log(coffee)
 
         // Crear un FormData para enviar datos en multipart/form-data
         const formData: FormDataCoffee = new FormData();
@@ -121,14 +120,25 @@ const AddCoffee = () => {
             });
 
             if (idCoffee) {
-                alert('Café actualizado correctamente');
+                toast({
+                    title: 'Éxito',
+                    description: 'Café actualizado correctamente',
+                });
             } else {
-                alert('Café creado correctamente');
+                toast({
+                    title: 'Éxito',
+                    description: 'Café creado correctamente',
+                });
             }
             router.push('/contentManager');
-                
+
         } catch (error) {
             console.error('Error creando café:', error);
+            toast({
+                title: 'Error',
+                description: 'Error creando café',
+                variant: 'destructive'
+            });
         }
     };
 
@@ -175,7 +185,7 @@ const AddCoffee = () => {
                         />
                     </div>
 
-                    <div className="space-y-2">
+                    <div className="space-y-2 relative">
                         <Label htmlFor="description">Descripción</Label>
                         <Textarea
                             id="description"
@@ -184,7 +194,9 @@ const AddCoffee = () => {
                             onChange={handleChange}
                             placeholder="Describe el café"
                             required
+                            maxLength={255}
                         />
+                        <Label className="absolute -bottom-6 right-2 text-gray-500 text-sm">Máximo 255 caracteres</Label>
                     </div>
 
                     <div className="space-y-2">

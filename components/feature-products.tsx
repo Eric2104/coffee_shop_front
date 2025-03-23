@@ -37,7 +37,7 @@ const FeatureProducts = () => {
                                     const { id, imagen, productName, slug, taste, origin } = product
 
                                     return (
-                                        <CarouselItem key={id} className="md:basis-1/2 lg:basis-1/3 group">
+                                        <CarouselItem key={`carousel-${id}`} className="md:basis-1/2 lg:basis-1/3 group">
                                             <div className="p-1">
                                                 <Card className="py-3 border border-gray-200 shadow-none sm:min-h-80">
                                                     <CardContent className="relative flex items-center justify-center px-6 py-2 h-[27rem] md:h-[15rem]">

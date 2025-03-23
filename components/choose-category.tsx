@@ -4,6 +4,7 @@ import { CategoryType } from "@/types/category";
 import { ResponseType } from "@/types/response";
 import { ShoppingBag } from "lucide-react";
 import Link from "next/link";
+import React from "react";
 
 const ChooseCategory = () => {
     const { error, loading, result }: ResponseType = useGetCategories()
@@ -15,14 +16,14 @@ const ChooseCategory = () => {
             {!loading && result !== null && result.length !== 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                     {result.map((category: CategoryType, index: number) => (
-                        <>
-                            <Link key={`category-${category.categoryName}-${category.slug}`} href={`/category/${category.slug}`}
+                        <React.Fragment key={`category-${category.categoryName}-${category.slug}`} >
+                            <Link href={`/category/${category.slug}`}
                                 className="relative max-w-xs mx-auto overflow-hidden bg-no-repeat bg-cover rounded-lg h-40">
                                 <img src={`${category.imagen.url}`} alt="" className="w-72 transition duration-300 ease-in-out rounded-lg hover:scale-110 object-cover" />
 
                                 <p className="absolute w-full py-2 text-lg font-bold text-center text-white bottom-5 backdrop-blur-lg">{category.categoryName}</p>
                             </Link>
-                        </>
+                        </React.Fragment>
                     ))}
                 </div>
             ) :

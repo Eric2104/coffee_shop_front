@@ -19,7 +19,6 @@ export const useCart = create(persist<CartStore>((set, get) => ({
         const currentItems = get().items
         //const existingItem = currentItems.find((item) => item.id === data.id)
         const existingItem = currentItems.find((item) => item.slug === data.slug)
-        console.log(existingItem)
         if (existingItem) {
             return toast({
                 title: "El producto ya existe en el carrito.",

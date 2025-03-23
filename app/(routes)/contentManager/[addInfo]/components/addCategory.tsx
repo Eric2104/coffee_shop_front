@@ -1,5 +1,6 @@
 'use client'
 import { useGetCategoryById } from "@/api/getCategoryById";
+import DialogErrors from "@/components/dialog-errors";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -7,9 +8,17 @@ import { Label } from "@/components/ui/label";
 import axios from "axios";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { toast } from "@/hooks/use-toast"
+
 
 interface ImagenCategory {
     imagen: File | null;
+}
+
+// Define the Category interface
+interface Category {
+    id?: number;
+    categoryName: string;
 }
 
 const AddCategory = () => {
@@ -17,7 +26,9 @@ const AddCategory = () => {
     const { idCoffee } = useParams();
     const { error, loading, result }: { error: any, loading: boolean, result: any } = useGetCategoryById(Number(idCoffee));
     const router = useRouter();
-    const [categoryAdd, setCoffee] = useState({
+
+    // Use the Category interface in the useState hook
+    const [categoryAdd, setCoffee] = useState<Category>({
         id: -1,
         categoryName: ''
     });
@@ -25,6 +36,15 @@ const AddCategory = () => {
     const [imagenCategory, setImagenCoffee] = useState<ImagenCategory>({
         imagen: null
     });
+
+    const [showDialogErrors, setShowDialogErrors] = useState(false);
+
+    const messageError = [
+        {
+            titulo: 'Error',
+            descripcion: 'Esta categoría no puede ser eliminada ya que está asociada a un producto, debes asegurarte de que no esté asociada a ningún producto para poder eliminar'
+        }
+    ]
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -44,10 +64,15 @@ const AddCategory = () => {
         e.preventDefault();
         const formData = new FormData();
 
-        formData.append('category', JSON.stringify(categoryAdd));
+        let categoryData = { ...categoryAdd };
+        if (!idCoffee) {
+            const { id, ...rest } = categoryData;
+            categoryData = rest;
+        }
+
+        formData.append('category', JSON.stringify(categoryData));
 
         if (imagenCategory.imagen !== null) {
-            alert("Se ha seleccionado una imagen")
             formData.append('imagen', imagenCategory.imagen);
         }
 
@@ -58,16 +83,27 @@ const AddCategory = () => {
                     'Content-Type': 'multipart/form-data'
                 }
             });
-            
+
             if (idCoffee) {
-                alert('Categoría actualizada correctamente');
+                toast({
+                    title: 'Éxito',
+                    description: 'Categoría actualizado correctamente',
+                });
             } else {
-                alert('Categoría creada correctamente');
+                toast({
+                    title: 'Éxito',
+                    description: 'Categoría creado correctamente',
+                });
             }
             router.push('/contentManager');
 
         } catch (error) {
             console.error('Error creando categoria:', error);
+            toast({
+                title: 'Error',
+                description: 'Error creando categoría',
+                variant: 'destructive'
+            });
         }
     };
 
@@ -79,6 +115,30 @@ const AddCategory = () => {
             });
         }
     }, [result])
+
+    const deleteCategory = async () => {
+        try {
+            const res = await axios.delete(`${process.env.NEXT_PUBLIC_BACKEND_URL}/coffee-app/categories/${idCoffee}`);
+            if (res.status === 200) {
+                toast({
+                    title: 'Éxito',
+                    description: 'Categoría eliminado correctamente',
+                });
+                router.push('/contentManager');
+            }
+        } catch (error) {
+            if (axios.isAxiosError(error) && error.response?.status === 409) {
+                setShowDialogErrors(true);
+            } else {
+                console.error('Error eliminando categoría:', error);
+                toast({
+                    title: 'Error',
+                    description: 'Error eliminando categoría',
+                    variant: 'destructive'
+                });
+            }
+        }
+    };
 
 
     return (
@@ -124,12 +184,13 @@ const AddCategory = () => {
                             {idCoffee ? 'Actualizar' : 'Agregar'}
                         </Button>
                         {idCoffee && (
-                            <Button type="button" className="w-full  transition" variant={'destructive'} disabled>
+                            <Button type="button" className="w-full  transition" variant={'destructive'} onClick={deleteCategory}>
                                 Eliminar
                             </Button>
                         )}
                     </div>
                 </form>
+                <DialogErrors isOpen={showDialogErrors} messageError={messageError} setIsOpen={setShowDialogErrors} />
             </CardContent>
         </Card>
     );

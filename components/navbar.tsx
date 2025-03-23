@@ -9,13 +9,22 @@ import { useLovedProducts } from "@/hooks/use-loved-product";
 import { MenuSession } from "./menuSession";
 import { OptionsMenuUser } from "./options-menu-user";
 import { AppSidebar } from "./app-side-bar";
+import { jwtDecode } from "jwt-decode";
 
 const NavBar = () => {
     const [token, setToken] = useState<string | null>(null);
 
     useEffect(() => {
         const storedToken = localStorage.getItem('token');
-        setToken(storedToken);
+        if (storedToken) {
+            const decodedToken: any = jwtDecode(storedToken);
+            const currentTime = Date.now() / 1000; // Tiempo actual en segundos
+            if (decodedToken.exp > currentTime) {
+                setToken(storedToken);
+            } else {
+                localStorage.removeItem('token');
+            }
+        }
     }, []);
 
     const cart = useCart();

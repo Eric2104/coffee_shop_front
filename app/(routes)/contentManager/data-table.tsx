@@ -30,17 +30,25 @@ import {
 } from "@/components/ui/dropdown-menu"
 import Link from "next/link"
 import { useManager } from "@/hooks/use-manager"
+import useDeleteCoffee from "@/api/useDeleteCoffee"
+import useDeleteOrigin from "@/api/useDeleteOrigin"
+import useDeleteCategory from "@/api/useDeleteCategory"
 
 interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[]
-  data: TData[]
+  columns: ColumnDef<TData, TValue>[];
+  data: TData[];
+  refetchData: () => void;
 }
 
-export function DataTable<TData, TValue>({columns,data}: DataTableProps<TData, TValue>) {
-
+export function DataTable<TData, TValue>({ columns, data, refetchData }: DataTableProps<TData, TValue>) {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
-  const {view} = useManager();
+  const { view } = useManager();
+  const { deleteCoffee } = useDeleteCoffee()
+  const { deleteOrigin } = useDeleteOrigin()
+  const { deleteCategory } = useDeleteCategory()
+
+
 
   const table = useReactTable({
     data,
@@ -56,13 +64,41 @@ export function DataTable<TData, TValue>({columns,data}: DataTableProps<TData, T
     },
   })
 
+  const handleDelete = async (id: number) => {
+    switch (view) {
+      case "coffees":
+        await deleteCoffee(id);
+        break;
+      case "origin":
+        await deleteOrigin(id);
+        break;
+      case "categories":
+        await deleteCategory(id);
+        break;
+    }
+    refetchData();
+  }
+
+  const getColumnFilterName = () => {
+    switch (view) {
+      case "coffees":
+        return "productName";
+      case "origin":
+        return "nameOrigin";
+      case "categories":
+        return "categoryName";
+      default:
+        return "productName";
+    }
+  };
+
   return (
     <div className="bg-white rounded-2xl shadow-md p-4">
       <div className="flex items-center py-4 gap-4 flex-wrap">
         <Input
-          placeholder="Buscar producto"
-          value={(table.getColumn('productName')?.getFilterValue() as number) ?? ''}
-          onChange={(event) => table.getColumn('productName')?.setFilterValue(event.target.value)}
+          placeholder="Buscar elemento"
+          value={(table.getColumn(getColumnFilterName())?.getFilterValue() as string) ?? ''}
+          onChange={(event) => table.getColumn(getColumnFilterName())?.setFilterValue(event.target.value)}
           className="max-w-sm"
         />
         <DropdownMenu>
@@ -103,11 +139,12 @@ export function DataTable<TData, TValue>({columns,data}: DataTableProps<TData, T
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
                   ))}
-                  <div className="flex gap-2 items-center justify-center">
-                    <Link href={`/contentManager/${view}/${row.original.id}`} className="px-3 py-2 bg-gray-200 rounded text-gray-800 my-2 hover:cursor-pointer hover:bg-gray-300 transition-colors duration-150">Editar</Link>
-                    <Button variant="destructive" onClick={() =>{console.log(row.original)}}>Eliminar</Button>
-                    {/* <Button variant="destructive" onClick={() =>{console.log(row.original)}}>Eliminar</Button> */}
-                  </div>
+                  <TableCell className="text-center">
+                    <div className="flex gap-2 items-center justify-center">
+                      <Link href={`/contentManager/${view}/${row.original.id}`} className="px-3 py-2 bg-gray-200 rounded text-gray-800 my-2 hover:cursor-pointer hover:bg-gray-300 transition-colors duration-150">Editar</Link>
+                      <Button variant="destructive" onClick={() => { handleDelete(row.original.id) }}>Eliminar</Button>
+                    </div>
+                  </TableCell>
                 </TableRow>
               ))
             ) : (

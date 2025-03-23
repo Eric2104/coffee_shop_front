@@ -1,5 +1,3 @@
-//use que controla el     const [view, setView] = useState<ViewType>("coffees"); type ViewType = "coffees" | "origin" | "categories";
-
 import { create } from "zustand";
 
 interface ControlManager {

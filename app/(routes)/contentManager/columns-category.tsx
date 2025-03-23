@@ -2,11 +2,10 @@
 
 import { ColumnDef } from "@tanstack/react-table"
 
-// This type is used to define the shape of our data.
-// You can use a Zod schema here if you want.
 export type Payment = {
   id: string
   slug:string
+  categoryName:string
 }
 
 export const columnsCategories: ColumnDef<Payment>[] = [
@@ -15,7 +14,12 @@ export const columnsCategories: ColumnDef<Payment>[] = [
     header: "Id",
   },
   {
-    accessorKey: "slug",
+    accessorKey: "categoryName",
     header: "Categoria",
   },
+  {
+    accessorKey: "slug",
+    header: "slug categoria",
+  }
+  
 ]
